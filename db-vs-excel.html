@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database vs Excel — Rapido</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f1f5f9;color:#0f172a;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6}
+.page{max-width:1000px;margin:0 auto;padding:0 1.5rem 5rem}
+.hero{text-align:center;padding:3.5rem 1rem 2rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;color:#0f172a}
+.hero p{color:#64748b;font-size:1.05rem;margin-top:.5rem}
+.section{margin-top:2.5rem}
+.pill{display:inline-block;background:#fff2e8;color:#ea580c;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 12px;border-radius:99px;margin-bottom:1rem;border:1px solid #fed7aa}
+
+/* Scenario tabs */
+.stabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.stab{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:7px 14px;font-size:13px;color:#64748b;cursor:pointer;transition:all .25s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.stab:hover{border-color:#fb923c;color:#ea580c}
+.stab.active{background:#fff7ed;border-color:#f97316;color:#ea580c;font-weight:600}
+
+/* Grid */
+.cmp-grid{display:grid;grid-template-columns:1fr 56px 1fr;gap:0;align-items:stretch}
+.vs-col{display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#94a3b8}
+.side{background:#fff;border-radius:16px;padding:1.5rem;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.side.xl{border-color:#fde68a;background:#fffdf0}
+.side.db{border-color:#bbf7d0;background:#f0fdf4}
+.side-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.side-icon{font-size:1.8rem}
+.side-title{font-size:16px;font-weight:700}
+.xl .side-title{color:#b45309}
+.db .side-title{color:#15803d}
+
+.scen{display:none}
+.scen.active{display:block}
+.scen-label{font-size:11px;color:#94a3b8;margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.scen-answer{font-size:14px;color:#374151;line-height:1.7;margin-bottom:.8rem}
+.bar-wrap{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-top:.5rem}
+@keyframes grow{from{width:0}to{width:var(--w)}}
+.bar{height:100%;border-radius:4px;width:0}
+.bar.run{animation:grow 1s cubic-bezier(.4,0,.2,1) .2s both}
+.xl .bar{background:#f59e0b}
+.db .bar{background:#22c55e}
+.result{margin-top:.8rem;padding:.7rem 1rem;border-radius:8px;font-size:13px;font-weight:600}
+.xl .result{background:#fef2f2;color:#b91c1c;border-left:3px solid #fca5a5}
+.db .result{background:#f0fdf4;color:#15803d;border-left:3px solid #86efac}
+
+/* Full table */
+.ctable{width:100%;border-collapse:collapse;font-size:13.5px}
+.ctable th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc;border-bottom:1px solid #f1f5f9}
+.ctable td{padding:10px 16px;border-bottom:1px solid #f8fafc;color:#374151}
+.ctable tr:last-child td{border-bottom:none}
+.ctable td:nth-child(2){color:#b45309;font-weight:500}
+.ctable td:nth-child(3){color:#15803d;font-weight:500}
+.ctable tr:nth-child(even) td{background:#fafafa}
+.win{font-size:10px;padding:2px 6px;border-radius:99px;background:#dcfce7;color:#16a34a;font-weight:700;margin-left:5px;border:1px solid #86efac}
+
+@media(max-width:640px){.cmp-grid{grid-template-columns:1fr;gap:12px}.vs-col{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="hero">
+  <h1>Why Rapido can't run on Excel</h1>
+  <p>Explore real Rapido scenarios — see why a database wins every time</p>
+</div>
+<div class="section">
+  <div class="pill">Pick a scenario</div>
+  <div class="stabs">
+    <div class="stab active" onclick="setSc('search',this)">🔍 Finding a ride</div>
+    <div class="stab" onclick="setSc('users',this)">👥 Many users at once</div>
+    <div class="stab" onclick="setSc('link',this)">🔗 Linking rider to rides</div>
+    <div class="stab" onclick="setSc('size',this)">📦 Scale</div>
+    <div class="stab" onclick="setSc('protect',this)">🛡️ Protecting data</div>
+  </div>
+  <div class="cmp-grid">
+    <div class="side xl">
+      <div class="side-head"><span class="side-icon">📊</span><span class="side-title">Excel</span></div>
+      <div class="scen active" id="xl-search"><div class="scen-label">Searching for Ankit's rides</div><div class="scen-answer">You scroll through 10,000 rows manually, or write a VLOOKUP that crashes when it hits 50,000 rows.</div><div class="bar-wrap"><div class="bar run" style="--w:7%"></div></div><div class="result">🐌 Slow. Gets worse as data grows.</div></div>
+      <div class="scen" id="xl-users"><div class="scen-label">Multiple captains updating</div><div class="scen-answer">Only one person can edit the file at a time. Two simultaneous updates → one person's data gets silently overwritten.</div><div class="result">❌ Last to save wins. Data lost forever.</div></div>
+      <div class="scen" id="xl-link"><div class="scen-label">Connecting rider to rides</div><div class="scen-answer">You'd manually copy the rider's name into every ride row, or write fragile VLOOKUP formulas. Update a name → update every row.</div><div class="result">😰 Manual work. Breaks easily.</div></div>
+      <div class="scen" id="xl-size"><div class="scen-label">Rapido's ride history</div><div class="scen-answer">Excel maxes out at ~1 million rows per sheet. Rapido does crores of rides every month across India.</div><div class="bar-wrap"><div class="bar run" style="--w:4%"></div></div><div class="result">❌ File crashes. Can't scale.</div></div>
+      <div class="scen" id="xl-protect"><div class="scen-label">Protecting captain earnings</div><div class="scen-answer">Anyone with the file can see and edit everything — including payouts — with no audit trail.</div><div class="result">⚠️ No row-level control at all.</div></div>
+    </div>
+    <div class="vs-col">VS</div>
+    <div class="side db">
+      <div class="side-head"><span class="side-icon">🗄️</span><span class="side-title">Database</span></div>
+      <div class="scen active" id="db-search"><div class="scen-label">Searching for Ankit's rides</div><div class="scen-answer">The database uses an index — like a book's index page — to jump straight to the right rows. No scrolling, no crashing, no manual work.</div><div class="bar-wrap"><div class="bar run" style="--w:97%"></div></div><div class="result">⚡ Milliseconds. Even with 10 crore rows.</div></div>
+      <div class="scen" id="db-users"><div class="scen-label">Multiple captains updating</div><div class="scen-answer">Databases handle thousands of simultaneous updates. Each is isolated — no conflicts, no overwriting.</div><div class="result">✅ Thousands at once. No data loss.</div></div>
+      <div class="scen" id="db-link"><div class="scen-label">Connecting rider to rides</div><div class="scen-answer">The database links tables automatically using a Foreign Key. Update the rider's name once — it reflects everywhere, instantly, forever. No manual copy-pasting required.</div><div class="result">✅ One source of truth. Zero duplication.</div></div>
+      <div class="scen" id="db-size"><div class="scen-label">Rapido's ride history</div><div class="scen-answer">PostgreSQL and MySQL handle billions of rows. Query speed stays fast due to indexing and query planning.</div><div class="bar-wrap"><div class="bar run" style="--w:96%"></div></div><div class="result">✅ Billions of rows. Still fast.</div></div>
+      <div class="scen" id="db-protect"><div class="scen-label">Protecting captain earnings</div><div class="scen-answer">Role-based access: riders see their own rides. Payroll sees earnings. Admins see everything. Every change logged.</div><div class="result">✅ Row-level security + full audit trail.</div></div>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="pill">Full comparison</div>
+  <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <table class="ctable">
+      <thead><tr><th></th><th>📊 Excel</th><th>🗄️ Database <span class="win">Always wins</span></th></tr></thead>
+      <tbody>
+        <tr><td>Max rows</td><td>~1 million</td><td>Billions (no hard limit)</td></tr>
+        <tr><td>Simultaneous users</td><td>1 editor at a time</td><td>Thousands at once</td></tr>
+        <tr><td>Table relationships</td><td>VLOOKUP (manual &amp; fragile)</td><td>Built-in JOINs</td></tr>
+        <tr><td>Find all Bangalore rides</td><td>Filter + manual scroll</td><td>Instant — even across billions of rows</td></tr>
+        <tr><td>Enforce data rules</td><td>Manual checking</td><td>Constraints (auto-enforced)</td></tr>
+        <tr><td>Access control</td><td>File-level only</td><td>Row &amp; column level</td></tr>
+        <tr><td>Audit trail</td><td>None</td><td>Full history of every change</td></tr>
+        <tr><td>Best for</td><td>Quick personal analysis</td><td>Apps, systems, at scale</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+<script>
+function setSc(s,tab){
+  document.querySelectorAll('.stab').forEach(function(t){t.classList.remove('active')});
+  tab.classList.add('active');
+  document.querySelectorAll('.scen').forEach(function(c){c.classList.remove('active')});
+  ['xl-'+s,'db-'+s].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.add('active')});
+  setTimeout(function(){
+    document.querySelectorAll('.scen.active .bar').forEach(function(b){b.classList.remove('run');void b.offsetWidth;b.classList.add('run')});
+  },50);
+}
+</script>
+</body>
+</html>
