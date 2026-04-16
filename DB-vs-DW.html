@@ -1,0 +1,399 @@
+<style>
+:root{--ob:#F4611A;--am:#E8920A;--tl:#0B9E8F;--pu:#6B4EFF;--bl:#1A6FF4;--re:#E63B2E;--gn:#22A06B;--muted:#888;--card:#fff;--cb:#E8E4DF;--bg:#F7F5F2;--dark:#1A1410;--light:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F7F5F2;color:#1A1410;overflow-x:hidden}
+h1,h2,h3{font-weight:700}
+.header{text-align:center;padding:32px 20px 0}
+.header h1{font-size:clamp(20px,3vw,32px);color:#1A1410;line-height:1.2}
+.header h1 span{color:var(--ob)}
+.header p{margin-top:8px;font-size:13px;color:var(--muted)}
+.canvas{max-width:1100px;margin:0 auto;padding:20px 20px 48px}
+
+/* ── PIPE ANIMATION ── */
+.pipe-section{display:flex;align-items:center;justify-content:center;gap:0;margin:28px 0 8px;position:relative}
+.pipe-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);width:80px;text-align:right;padding-right:10px;flex-shrink:0}
+.pipe-row{flex:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.source-bubble{flex:1;min-width:90px;background:#fff;border:1.5px solid var(--cb);border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s;user-select:none}
+.source-bubble:hover{transform:translateY(-3px);border-color:var(--am);box-shadow:0 6px 18px rgba(244,97,26,.12)}
+.source-bubble:active{transform:translateY(0) scale(.97)}
+.source-bubble .sicon{font-size:20px;margin-bottom:4px}
+.source-bubble .sname{font-size:11px;font-weight:700;color:#1A1410;margin-bottom:2px}
+.source-bubble .sdesc{font-size:9px;color:var(--muted)}
+.source-bubble .stag{margin-top:5px;font-size:9px;color:var(--am);background:rgba(232,146,10,.1);padding:2px 6px;border-radius:4px;display:inline-block;font-family:monospace}
+
+/* ── PIPE CANVAS ── */
+.pipe-canvas-wrap{padding:0 80px;position:relative}
+svg.pipes{width:100%;display:block}
+.pipe-path{stroke-dasharray:8 5;stroke-dashoffset:0;animation:flowPipe 1.2s linear infinite}
+@keyframes flowPipe{to{stroke-dashoffset:-26}}
+.pipe-path.slow{animation-duration:2.2s}
+.pipe-path.fast{animation-duration:.7s}
+
+/* ── ETL ── */
+.etl-row{display:flex;align-items:center;gap:0;margin:4px 0}
+.etl-wrap{flex:1;background:#fff;border:1.5px solid var(--cb);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-around;gap:10px}
+.etl-step{text-align:center;flex:1}
+.etl-step .eico{font-size:18px;margin-bottom:3px}
+.etl-step .ename{font-size:11px;font-weight:700;color:#1A1410}
+.etl-step .edesc{font-size:10px;color:var(--muted)}
+.etl-arr{color:var(--ob);font-size:20px;font-weight:900}
+
+/* ── DB vs DW ── */
+.boxes-row{display:flex;align-items:stretch;gap:14px;margin:4px 0}
+.box-label{width:80px;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding-right:10px;padding-top:28px}
+.big-box{flex:1;border-radius:14px;padding:18px 18px 14px;border:2px solid;position:relative;cursor:pointer;transition:box-shadow .2s}
+.big-box:hover{box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.big-box .badge{position:absolute;top:-12px;left:18px;padding:3px 12px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1.5px solid}
+.big-box h3{font-size:15px;font-weight:800;margin:6px 0 4px}
+.big-box .sub{font-size:11px;color:var(--muted);margin-bottom:10px}
+.big-box .facts{list-style:none}
+.big-box .facts li{font-size:11px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.05);display:flex;gap:7px}
+.big-box .facts li:last-child{border-bottom:none}
+.db-box{background:#F3FAF7;border-color:#22A06B}
+.db-box h3{color:#166348}
+.db-box .badge{background:#EAF5F0;color:#166348;border-color:#22A06B}
+.dw-box{background:#EDF3FD;border-color:#1A6FF4}
+.dw-box h3{color:#0A3D80}
+.dw-box .badge{background:#E6F1FB;color:#0A3D80;border-color:#1A6FF4}
+.vs-badge{width:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--ob)}
+
+/* ── ARROW ── */
+.arrow-col{display:flex;flex-direction:column;align-items:center;margin:2px 0;padding-left:80px}
+.arr-line{width:2px;height:32px;background:linear-gradient(to bottom,#ccc,var(--ob))}
+.arr-head{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:10px solid var(--ob)}
+.arr-lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+/* ── TABLE CARDS ── */
+.tables-section{display:flex;gap:12px;margin:4px 0}
+.tbl-card{flex:1;background:#fff;border:1.5px solid var(--cb);border-radius:12px;overflow:hidden}
+.tbl-head{background:#FAF8F5;border-bottom:1.5px solid var(--cb);padding:9px 13px;display:flex;align-items:center;gap:7px}
+.tbl-head .tname{font-family:monospace;font-size:12px;font-weight:700;color:var(--am)}
+.tbl-head .tcnt{font-size:10px;color:var(--muted);margin-left:auto}
+.tbl-card table{width:100%;border-collapse:collapse;font-family:monospace;font-size:10px}
+.tbl-card thead th{background:rgba(232,146,10,.07);color:var(--am);padding:5px 10px;text-align:left;font-weight:600;border-bottom:1px solid rgba(232,146,10,.15)}
+.tbl-card tbody td{padding:5px 10px;color:#555;border-bottom:1px solid rgba(0,0,0,.04)}
+.tbl-card tbody tr:last-child td{border-bottom:none}
+.tbl-card tbody tr{cursor:pointer;transition:background .1s}
+.tbl-card tbody tr:hover td{background:#FDF6EE}
+td.pk{color:var(--ob);font-weight:700}
+td.fk{color:var(--bl)}
+td.good{color:var(--gn)}
+td.bad{color:var(--re)}
+td.null{color:#bbb;font-style:italic}
+.tbl-foot{padding:7px 13px;font-size:10px;color:var(--muted);background:#FAFAF9;border-top:1px solid var(--cb)}
+
+/* ── FK LINK ── */
+.fk-row{text-align:center;font-size:10px;color:var(--bl);font-family:monospace;padding:4px 80px}
+
+/* ── ANALYST ── */
+.analyst-box{flex:1;background:#FAF8FF;border:2px solid #6B4EFF;border-radius:14px;padding:18px 18px 14px;position:relative}
+.analyst-box .badge{position:absolute;top:-12px;left:18px;padding:3px 12px;border-radius:20px;font-size:10px;font-weight:700;background:#EEE8FF;color:#4B32CC;border:1.5px solid #6B4EFF}
+.analyst-box h3{font-size:14px;font-weight:800;color:#4B32CC;margin:6px 0 10px}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.q-card{background:rgba(107,78,255,.06);border:1px solid rgba(107,78,255,.18);border-radius:8px;padding:10px 12px}
+.q-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6B4EFF;margin-bottom:4px}
+.q-text{font-family:monospace;font-size:10px;color:#333;line-height:1.6}
+.q-result{margin-top:5px;font-size:10px;color:var(--gn);font-weight:700}
+
+/* ── COMPARISON ── */
+.comp-section{margin-top:32px;padding-top:22px;border-top:1.5px solid var(--cb)}
+.comp-lbl{font-size:11px;font-weight:700;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{padding:9px 14px;text-align:left;font-weight:700;font-size:11px}
+.comp-table th:nth-child(1){color:var(--muted);width:22%}
+.comp-table th:nth-child(2){color:#166348;background:rgba(34,160,107,.07);border-radius:8px 8px 0 0}
+.comp-table th:nth-child(3){color:#0A3D80;background:rgba(26,111,244,.07);border-radius:8px 8px 0 0}
+.comp-table td{padding:7px 14px;border-bottom:1px solid rgba(0,0,0,.05);color:#444}
+.comp-table td:nth-child(1){color:var(--muted);font-weight:600;font-size:11px}
+.comp-table td:nth-child(2){background:rgba(34,160,107,.04)}
+.comp-table td:nth-child(3){background:rgba(26,111,244,.04)}
+.comp-table tr:last-child td{border-bottom:none}
+
+/* ── TOOLTIP ── */
+#tooltip{position:fixed;background:#1A1410;color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;max-width:200px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999}
+</style>
+
+<h2 class="sr-only" style="position:absolute;left:-9999px">Interactive explainer: Database vs Data Warehouse using Zomato as an example, showing data flow from sources through ETL to storage and analyst queries</h2>
+
+<div class="header">
+  <h1>Where does Zomato's data actually <span>live?</span></h1>
+  <p>Tap any card to learn more &nbsp;·&nbsp; Watch the data flow</p>
+</div>
+
+<div class="canvas">
+
+<!-- SOURCES -->
+<div style="display:flex;align-items:flex-start;gap:0;margin-bottom:4px">
+  <div class="pipe-label" style="padding-top:22px">Data<br>Sources</div>
+  <div class="pipe-row">
+    <div class="source-bubble" onclick="tip(event,'Every tap, scroll, order placed in real time. Generates order_id, customer_id, timestamps.')">
+      <div class="sicon">📱</div>
+      <div class="sname">Zomato App</div>
+      <div class="sdesc">Orders, browsing</div>
+      <div class="stag">order_id</div>
+    </div>
+    <div class="source-bubble" onclick="tip(event,'Menu updates, dish availability, prep time estimates from partner kitchens.')">
+      <div class="sicon">🍽️</div>
+      <div class="sname">Restaurants</div>
+      <div class="sdesc">Menu, prep time</div>
+      <div class="stag">restaurant_id</div>
+    </div>
+    <div class="source-bubble" onclick="tip(event,'UPI, card, COD transactions. Payment status, failure codes, refunds.')">
+      <div class="sicon">💳</div>
+      <div class="sname">Payments</div>
+      <div class="sdesc">UPI, card, COD</div>
+      <div class="stag">payment_status</div>
+    </div>
+    <div class="source-bubble" onclick="tip(event,'Delivery agent GPS, delivery time, distance travelled, agent ratings.')">
+      <div class="sicon">🛵</div>
+      <div class="sname">Delivery</div>
+      <div class="sdesc">GPS, timing</div>
+      <div class="stag">delivery_mins</div>
+    </div>
+    <div class="source-bubble" onclick="tip(event,'Ratings, text reviews, photos, coupon usage. Submitted after order.')">
+      <div class="sicon">⭐</div>
+      <div class="sname">Reviews</div>
+      <div class="sdesc">Ratings, feedback</div>
+      <div class="stag">rating</div>
+    </div>
+  </div>
+</div>
+
+<!-- PIPE SVG -->
+<div class="pipe-canvas-wrap">
+<svg class="pipes" viewBox="0 0 900 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowO" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#F4611A"/>
+    </marker>
+  </defs>
+  <!-- 5 pipes merging down -->
+  <path class="pipe-path" d="M90,0 Q90,40 450,70" fill="none" stroke="#F4611A" stroke-width="2" opacity=".7" marker-end="url(#arrowO)"/>
+  <path class="pipe-path slow" d="M225,0 Q225,40 450,70" fill="none" stroke="#E8920A" stroke-width="2" opacity=".7" marker-end="url(#arrowO)"/>
+  <path class="pipe-path" d="M450,0 L450,70" fill="none" stroke="#F4611A" stroke-width="2" opacity=".7" marker-end="url(#arrowO)"/>
+  <path class="pipe-path fast" d="M675,0 Q675,40 450,70" fill="none" stroke="#E8920A" stroke-width="2" opacity=".7" marker-end="url(#arrowO)"/>
+  <path class="pipe-path slow" d="M810,0 Q810,40 450,70" fill="none" stroke="#F4611A" stroke-width="2" opacity=".7" marker-end="url(#arrowO)"/>
+  <!-- data blobs -->
+  <circle class="data-blob" cx="90" cy="0" r="4" fill="#F4611A" opacity=".9">
+    <animateMotion dur="1.2s" repeatCount="indefinite" path="M0,0 Q0,40 360,70"/>
+  </circle>
+  <circle class="data-blob" cx="225" cy="0" r="4" fill="#E8920A" opacity=".9">
+    <animateMotion dur="2.2s" repeatCount="indefinite" path="M0,0 Q0,40 225,70"/>
+  </circle>
+  <circle class="data-blob" cx="450" cy="0" r="4" fill="#F4611A" opacity=".9">
+    <animateMotion dur=".9s" repeatCount="indefinite" path="M0,0 L0,70"/>
+  </circle>
+  <circle class="data-blob" cx="675" cy="0" r="4" fill="#22A06B" opacity=".9">
+    <animateMotion dur="1.5s" repeatCount="indefinite" path="M0,0 Q0,40 -225,70"/>
+  </circle>
+  <circle class="data-blob" cx="810" cy="0" r="4" fill="#E8920A" opacity=".9">
+    <animateMotion dur="2s" repeatCount="indefinite" path="M0,0 Q0,40 -360,70"/>
+  </circle>
+</svg>
+</div>
+
+<!-- ETL -->
+<div class="etl-row">
+  <div class="pipe-label">ETL<br>Pipeline</div>
+  <div class="etl-wrap">
+    <div class="etl-step" onclick="tip(event,'Extract: Pull raw data from all sources — app events, DB logs, payment APIs.')">
+      <div class="eico">🪣</div>
+      <div class="ename">Extract</div>
+      <div class="edesc">Pull from all sources</div>
+    </div>
+    <div class="etl-arr">→</div>
+    <div class="etl-step" onclick="tip(event,'Transform: Clean nulls, fix formats, standardise city names, convert timezones.')">
+      <div class="eico">🧹</div>
+      <div class="ename">Transform</div>
+      <div class="edesc">Clean, format, standardise</div>
+    </div>
+    <div class="etl-arr">→</div>
+    <div class="etl-step" onclick="tip(event,'Load: Push cleaned data to the right destination — DB for live ops, DW for analysis.')">
+      <div class="eico">📦</div>
+      <div class="ename">Load</div>
+      <div class="edesc">Push to the right store</div>
+    </div>
+  </div>
+</div>
+
+<!-- PIPE SVG 2 — ETL to split -->
+<div class="pipe-canvas-wrap">
+<svg class="pipes" viewBox="0 0 900 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#22A06B"/>
+    </marker>
+    <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1A6FF4"/>
+    </marker>
+  </defs>
+  <!-- split from centre to DB (left) and DW (right) -->
+  <path class="pipe-path fast" d="M450,0 Q450,30 200,58" fill="none" stroke="#22A06B" stroke-width="2.5" opacity=".8" marker-end="url(#arrowG)"/>
+  <path class="pipe-path slow" d="M450,0 Q450,30 700,58" fill="none" stroke="#1A6FF4" stroke-width="2.5" opacity=".8" marker-end="url(#arrowB)"/>
+  <circle r="4" fill="#22A06B">
+    <animateMotion dur=".85s" repeatCount="indefinite" path="M450,0 Q450,30 200,58"/>
+  </circle>
+  <circle r="4" fill="#1A6FF4">
+    <animateMotion dur="1.6s" repeatCount="indefinite" path="M450,0 Q450,30 700,58"/>
+  </circle>
+</svg>
+</div>
+
+<!-- DB vs DW -->
+<div class="boxes-row">
+  <div class="box-label">Storage</div>
+  <div class="big-box db-box" onclick="tip(event,'The live, operational database. Used while you\'re actively ordering. Every write and read happens here in milliseconds. Keeps recent data only — usually days or weeks.')">
+    <div class="badge">Operational Database</div>
+    <h3>Database (DB)</h3>
+    <div class="sub">The live, working engine — right now</div>
+    <ul class="facts">
+      <li>⚡ Used while you're ordering — real-time</li>
+      <li>📝 Reads + writes every second</li>
+      <li>📅 Keeps recent data (days / weeks)</li>
+      <li>🎯 Optimised for speed, not analysis</li>
+      <li>🍳 <span style="color:var(--am)">Like your kitchen — cooking right now</span></li>
+    </ul>
+  </div>
+  <div class="vs-badge">VS</div>
+  <div class="big-box dw-box" onclick="tip(event,'The analytical data warehouse. Stores years of history. Used by analysts and BI tools to run complex queries across millions of rows. Rarely written to — mostly read.')">
+    <div class="badge">Data Warehouse</div>
+    <h3>Data Warehouse (DW)</h3>
+    <div class="sub">The historical archive — big picture</div>
+    <ul class="facts">
+      <li>📊 Used for reports, dashboards, analysis</li>
+      <li>📖 Mostly reads — rarely writes</li>
+      <li>🗓️ Stores years of historical data</li>
+      <li>🔍 Optimised for complex queries at scale</li>
+      <li>📚 <span style="color:var(--am)">Like a recipe book — every meal ever cooked</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ARROW DOWN from DB -->
+<div class="arrow-col">
+  <div class="arr-line"></div>
+  <div class="arr-head"></div>
+  <div class="arr-lbl">analyst queries the DB</div>
+</div>
+
+<!-- TABLE CARDS -->
+<div style="display:flex;gap:0;align-items:flex-start">
+  <div class="box-label" style="padding-top:14px">Tables<br>inside DB</div>
+  <div class="tables-section" style="flex:1">
+
+    <div class="tbl-card">
+      <div class="tbl-head">
+        <span style="font-size:14px">👤</span>
+        <span class="tname">zomato.customers</span>
+        <span class="tcnt">click a row ↓</span>
+      </div>
+      <table>
+        <thead><tr><th>customer_id</th><th>city</th><th>signup_date</th><th>is_prime</th></tr></thead>
+        <tbody>
+          <tr onclick="tip(event,'C001 is a Prime member from Bangalore who signed up in Jan 2023.')"><td class="pk">C001</td><td>Bangalore</td><td>2023-01-15</td><td class="good">Y</td></tr>
+          <tr onclick="tip(event,'C002 is a regular (non-Prime) customer from Delhi.')"><td class="pk">C002</td><td>Delhi</td><td>2023-03-22</td><td class="bad">N</td></tr>
+          <tr onclick="tip(event,'C003 is Prime, signed up mid-2024 from Mumbai.')"><td class="pk">C003</td><td>Mumbai</td><td>2024-07-08</td><td class="good">Y</td></tr>
+          <tr onclick="tip(event,'C004 is a regular customer from Pune, newest signup.')"><td class="pk">C004</td><td>Pune</td><td>2024-11-30</td><td class="bad">N</td></tr>
+        </tbody>
+      </table>
+      <div class="tbl-foot">🔑 customer_id = Primary Key — each row is one unique person</div>
+    </div>
+
+    <div class="tbl-card">
+      <div class="tbl-head">
+        <span style="font-size:14px">🛒</span>
+        <span class="tname">zomato.orders</span>
+        <span class="tcnt">click a row ↓</span>
+      </div>
+      <table>
+        <thead><tr><th>order_id</th><th>customer_id</th><th>status</th><th>value</th><th>rating</th><th>payment</th></tr></thead>
+        <tbody>
+          <tr onclick="tip(event,'ORD001: C001 (Bangalore, Prime) placed a ₹340 UPI order and gave 4 stars.')"><td class="pk">ORD001</td><td class="fk">C001</td><td class="good">delivered</td><td>₹340</td><td>4</td><td>UPI</td></tr>
+          <tr onclick="tip(event,'ORD002: Same customer C001 cancelled this order — notice rating is NULL because they never received it.')"><td class="pk">ORD002</td><td class="fk">C001</td><td class="bad">cancelled</td><td>₹210</td><td class="null">NULL</td><td>Card</td></tr>
+          <tr onclick="tip(event,'ORD003: C002 from Delhi, highest value order, gave a perfect 5-star rating.')"><td class="pk">ORD003</td><td class="fk">C002</td><td class="good">delivered</td><td>₹580</td><td>5</td><td>UPI</td></tr>
+          <tr onclick="tip(event,'ORD004: C003 from Mumbai paid by COD — notice the lower 3-star rating.')"><td class="pk">ORD004</td><td class="fk">C003</td><td class="good">delivered</td><td>₹125</td><td>3</td><td>COD</td></tr>
+        </tbody>
+      </table>
+      <div class="tbl-foot">🔗 customer_id here = Foreign Key — links back to the customers table</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="fk-row">← customer_id (C001, C002…) in <strong>orders</strong> matches customer_id in <strong>customers</strong> — this is how two tables talk to each other →</div>
+
+<!-- ARROW DOWN to analyst -->
+<div class="arrow-col">
+  <div class="arr-line" style="background:linear-gradient(to bottom,#ccc,#6B4EFF)"></div>
+  <div class="arr-head" style="border-top-color:#6B4EFF"></div>
+</div>
+
+<!-- ANALYST -->
+<div style="display:flex;gap:0">
+  <div class="box-label" style="padding-top:28px">You —<br>Analyst</div>
+  <div class="analyst-box" style="flex:1">
+    <div class="badge">Data Analyst</div>
+    <h3>SQL is how you talk to the tables</h3>
+    <div class="q-grid">
+      <div class="q-card">
+        <div class="q-lbl">Manager asks</div>
+        <div class="q-text">How many orders did Bangalore get yesterday?</div>
+      </div>
+      <div class="q-card">
+        <div class="q-lbl">Your SQL</div>
+        <div class="q-text">SELECT COUNT(*)<br>FROM zomato.orders<br>WHERE city = 'Bangalore'<br>AND order_date = '2024-01-15';</div>
+        <div class="q-result">→ 2,847 orders</div>
+      </div>
+      <div class="q-card">
+        <div class="q-lbl">Manager asks</div>
+        <div class="q-text">Which Prime members cancelled last month?</div>
+      </div>
+      <div class="q-card">
+        <div class="q-lbl">Your SQL</div>
+        <div class="q-text">SELECT c.customer_id, c.city<br>FROM customers c<br>JOIN orders o<br>ON c.customer_id = o.customer_id<br>WHERE c.is_prime = 'Y'<br>AND o.status = 'cancelled';</div>
+        <div class="q-result">→ 143 customers</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="comp-section">
+  <div class="comp-lbl">Quick reference — DB vs Data Warehouse</div>
+  <table class="comp-table">
+    <thead><tr><th>—</th><th>📦 Database (DB)</th><th>🏛️ Data Warehouse (DW)</th></tr></thead>
+    <tbody>
+      <tr><td>What it stores</td><td>Current, live data</td><td>Historical data (years)</td></tr>
+      <tr><td>Who uses it</td><td>App, engineers, live systems</td><td>Analysts, BI teams, executives</td></tr>
+      <tr><td>Operations</td><td>Insert, Update, Delete, Select</td><td>Mostly Select (read-heavy)</td></tr>
+      <tr><td>Speed</td><td>Very fast for single rows</td><td>Fast for huge complex queries</td></tr>
+      <tr><td>Zomato example</td><td>Your order right now</td><td>Q3 city-wise order report</td></tr>
+      <tr><td>Examples</td><td>MySQL, PostgreSQL</td><td>BigQuery, Snowflake, Redshift</td></tr>
+      <tr><td>Your role</td><td>Write SQL to extract data</td><td>Write SQL to analyse trends</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const tt = document.getElementById('tooltip');
+let hideTimer;
+
+function tip(e, msg) {
+  clearTimeout(hideTimer);
+  tt.textContent = msg;
+  tt.style.opacity = '1';
+  const x = Math.min(e.clientX + 12, window.innerWidth - 220);
+  const y = e.clientY + 16;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+  hideTimer = setTimeout(() => tt.style.opacity = '0', 3500);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('[onclick]')) tt.style.opacity = '0';
+});
+</script>

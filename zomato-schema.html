@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zomato Schema Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #F7F5F2;
+    --surface: #FFFFFF;
+    --sur2:    #F9F7F5;
+    --border:  #E8E3DC;
+    --bor2:    #D5CEC5;
+    --orange:  #CC520E;
+    --o-l:     #FEF2EB;
+    --o-m:     #F9D9C4;
+    --blue:    #1756C0;
+    --b-l:     #EEF3FD;
+    --b-m:     #BCCFF5;
+    --green:   #17875A;
+    --g-l:     #EDFAF3;
+    --g-m:     #AADFC5;
+    --red:     #C03028;
+    --r-l:     #FEF0EF;
+    --grey-l:  #EEEAE5;
+    --t1:      #1A140C;
+    --t2:      #6B5D50;
+    --t3:      #A8998A;
+    --t4:      #CFC7BC;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'DM Sans',sans-serif;
+    background:var(--bg); color:var(--t1);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .page { max-width:1100px; margin:0 auto; padding:0 32px 80px; }
+
+  /* HEADER */
+  .hdr { text-align:center; padding:52px 20px 40px; }
+  .eye {
+    display:inline-block; margin-bottom:18px;
+    font-size:11px; font-weight:500; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--orange);
+    background:var(--o-l); border:1px solid var(--o-m);
+    padding:4px 14px; border-radius:20px;
+  }
+  .hdr h1 {
+    font-family:'Lora',serif; font-size:clamp(26px,4vw,40px);
+    font-weight:600; letter-spacing:-.01em; line-height:1.2;
+    margin-bottom:12px; color:var(--t1);
+  }
+  .hdr h1 em { font-style:italic; color:var(--orange); }
+  .hdr p { font-size:15px; color:var(--t2); max-width:480px; margin:0 auto; }
+
+  /* LEGEND */
+  .legend { display:flex; gap:22px; justify-content:center; margin-bottom:36px; flex-wrap:wrap; }
+  .leg { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--t2); }
+  .lchip { font-size:9px; font-weight:700; letter-spacing:.07em; padding:2px 8px; border-radius:4px; }
+  .ndot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--t4); }
+
+  /* SCHEMA GRID */
+  .schema-wrap { position:relative; }
+  .schema-grid { display:grid; grid-template-columns:minmax(0,1fr) 88px minmax(0,1fr); align-items:start; }
+  .conn-col { position:relative; }
+  #erd-svg { position:absolute; top:0; left:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+
+  /* TABLE CARD */
+  .tcard { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .thead {
+    padding:15px 18px; border-bottom:1px solid var(--border);
+    background:var(--sur2); display:flex; align-items:center; gap:12px;
+  }
+  .ticon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .tname { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+  .tname .db { color:var(--t4); }
+  .tmeta { font-size:11px; color:var(--t3); margin-top:2px; }
+  .tpill { margin-left:auto; font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 10px; border-radius:20px; flex-shrink:0; }
+
+  /* COLUMN ROWS */
+  .crow { display:grid; grid-template-columns:44px 1fr; border-bottom:1px solid var(--border); transition:background .12s; cursor:default; }
+  .crow:last-child { border-bottom:none; }
+  .crow:hover { background:var(--sur2); }
+  .crow.pk { background:var(--o-l); border-left:3px solid var(--orange); }
+  .crow.pk:hover { background:#FAD8C2; }
+  .crow.fk { background:var(--b-l); border-left:3px solid var(--blue); }
+  .crow.fk:hover { background:#D8E5FB; }
+  .crow.hl { background:var(--g-l) !important; border-left:3px solid var(--green) !important; }
+
+  .bcell { display:flex; align-items:flex-start; justify-content:center; padding:14px 0 0; }
+  .badge { font-size:9px; font-weight:700; letter-spacing:.07em; padding:2px 5px; border-radius:4px; }
+  .b-pk { background:var(--o-m); color:var(--orange); }
+  .b-fk { background:var(--b-m); color:var(--blue); }
+  .b-dash { color:var(--t4); font-size:12px; margin-top:4px; }
+
+  .cinfo { padding:11px 16px 12px 2px; }
+  .cname { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--t1); }
+  .cname.pk { color:var(--orange); }
+  .cname.fk { color:var(--blue); }
+  .cdesc { font-size:11px; color:var(--t2); margin-top:4px; line-height:1.55; }
+  .samps { margin-top:7px; display:flex; gap:5px; flex-wrap:wrap; }
+  .s {
+    font-family:'DM Mono',monospace; font-size:10px;
+    padding:2px 7px; border-radius:5px;
+    background:var(--grey-l); color:var(--t2); border:1px solid var(--border);
+  }
+  .s.ok  { background:var(--g-l); color:var(--green); border-color:var(--g-m); }
+  .s.bad { background:var(--r-l); color:var(--red);   border-color:#F3C5C2; }
+  .s.pk  { background:var(--o-l); color:var(--orange);border-color:var(--o-m); }
+  .s.fk  { background:var(--b-l); color:var(--blue);  border-color:var(--b-m); }
+  .s.nil { color:var(--t3); font-style:italic; border-color:var(--border); }
+  .ndot2 { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--t4); margin-left:5px; vertical-align:middle; }
+
+  /* SECTION SEPARATOR */
+  .sep { display:flex; align-items:center; gap:14px; margin:52px 0 20px; }
+  .sep::before,.sep::after { content:''; flex:1; height:1px; background:var(--border); }
+  .sep span { font-size:11px; font-weight:500; letter-spacing:.09em; text-transform:uppercase; color:var(--t3); white-space:nowrap; }
+
+  /* JOIN EXPLORER */
+  .join-area { display:grid; grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr); align-items:start; }
+  .jpanel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .jhead { padding:9px 14px; border-bottom:1px solid var(--border); background:var(--sur2); font-family:'DM Mono',monospace; font-size:11px; color:var(--t2); }
+  .jcols { display:grid; padding:5px 14px; font-size:10px; font-weight:600; color:var(--t3); letter-spacing:.04em; border-bottom:1px solid var(--border); background:var(--sur2); }
+  .cc { grid-template-columns:55px 88px 90px 30px; }
+  .oc { grid-template-columns:58px 48px 68px 44px 30px 44px; }
+
+  .jrow { display:grid; padding:9px 14px; border-bottom:1px solid var(--border); font-size:12px; font-family:'DM Mono',monospace; cursor:pointer; transition:background .12s; gap:4px; }
+  .jrow:last-child { border-bottom:none; }
+  .jrow:hover { background:var(--sur2); }
+  .jrow.active { background:var(--g-l); border-left:3px solid var(--green); }
+  .jrow.dimmed { opacity:.28; }
+  .jrow.matched { background:var(--b-l); border-left:3px solid var(--blue); }
+
+  .jid  { color:var(--orange); }
+  .jfk  { color:var(--blue); }
+  .jok  { color:var(--green); }
+  .jbad { color:var(--red); }
+  .jmt  { color:var(--t3); }
+
+  .jconn { position:relative; }
+  #join-svg { position:absolute; top:0; left:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+
+  .hint { text-align:center; margin-top:10px; font-size:12px; color:var(--t3); font-style:italic; }
+  .rbar { margin-top:14px; padding:11px 16px; border-radius:9px; background:var(--g-l); border:1px solid var(--g-m); font-size:13px; color:var(--green); display:none; }
+  .rbar.on { display:block; }
+
+  /* CONCEPTS */
+  .concepts { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px; }
+  @media(max-width:680px){ .concepts { grid-template-columns:1fr; } }
+  .concept { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; }
+  .cchip { display:inline-block; margin-bottom:12px; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:20px; }
+  .concept h3 { font-family:'Lora',serif; font-size:15px; font-weight:600; margin-bottom:7px; }
+  .concept p { font-size:13px; color:var(--t2); line-height:1.65; }
+  .ceg { margin-top:10px; padding:8px 11px; border-radius:7px; background:var(--sur2); border:1px solid var(--border); font-family:'DM Mono',monospace; font-size:11px; color:var(--t2); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <div class="eye">DB Schema Design · Zomato</div>
+    <h1>How Zomato's data is <em>structured</em></h1>
+    <p>Two tables, one relationship, and every query you'll write this year starts from here.</p>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><span class="lchip" style="background:var(--o-m);color:var(--orange);">PK</span> Primary Key — unique row identity</div>
+    <div class="leg"><span class="lchip" style="background:var(--b-m);color:var(--blue);">FK</span> Foreign Key — bridge to another table</div>
+    <div class="leg"><span class="ndot"></span>&nbsp;Nullable — can be empty (NULL)</div>
+  </div>
+
+  <div class="schema-wrap">
+    <div class="schema-grid">
+
+      <!-- CUSTOMERS TABLE -->
+      <div class="tcard" id="cust-card">
+        <div class="thead">
+          <div class="ticon" style="background:var(--o-l);">👤</div>
+          <div>
+            <div class="tname"><span class="db">zomato.</span><span style="color:var(--orange)">customers</span></div>
+            <div class="tmeta">4 columns · one row per registered user</div>
+          </div>
+          <div class="tpill" style="background:var(--o-l);color:var(--orange);">customers</div>
+        </div>
+
+        <div class="crow pk" id="pk-row">
+          <div class="bcell"><span class="badge b-pk">PK</span></div>
+          <div class="cinfo">
+            <div class="cname pk">customer_id</div>
+            <div class="cdesc">Unique ID for each person — never repeats, never changes</div>
+            <div class="samps"><span class="s pk">C001</span><span class="s pk">C002</span><span class="s pk">C003</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">city</div>
+            <div class="cdesc">Where the customer is located</div>
+            <div class="samps"><span class="s">Bangalore</span><span class="s">Delhi</span><span class="s">Mumbai</span><span class="s">Pune</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">signup_date</div>
+            <div class="cdesc">Date they joined — tells you how old a customer is</div>
+            <div class="samps"><span class="s">2023-01-15</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">is_prime</div>
+            <div class="cdesc">Are they a Zomato Prime member?</div>
+            <div class="samps"><span class="s ok">Y — Prime</span><span class="s bad">N — Regular</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONNECTOR COL -->
+      <div class="conn-col" id="conn-col">
+        <svg id="erd-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <!-- ORDERS TABLE -->
+      <div class="tcard" id="ord-card">
+        <div class="thead">
+          <div class="ticon" style="background:var(--b-l);">🛒</div>
+          <div>
+            <div class="tname"><span class="db">zomato.</span><span style="color:var(--blue)">orders</span></div>
+            <div class="tmeta">11 columns · one row per order placed</div>
+          </div>
+          <div class="tpill" style="background:var(--b-l);color:var(--blue);">orders</div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="badge b-pk">PK</span></div>
+          <div class="cinfo">
+            <div class="cname pk">order_id</div>
+            <div class="cdesc">Unique ID for each order — never repeats</div>
+            <div class="samps"><span class="s pk">ORD001</span><span class="s pk">ORD002</span></div>
+          </div>
+        </div>
+
+        <div class="crow fk" id="fk-row">
+          <div class="bcell"><span class="badge b-fk">FK</span></div>
+          <div class="cinfo">
+            <div class="cname fk">customer_id</div>
+            <div class="cdesc">Who placed this order — matches <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--orange)">customers.customer_id</span></div>
+            <div class="samps"><span class="s fk">C001 → links to customers</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">order_date</div>
+            <div class="cdesc">Date the order was placed</div>
+            <div class="samps"><span class="s">2024-01-15</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">order_status</div>
+            <div class="cdesc">Current state of the order</div>
+            <div class="samps"><span class="s ok">delivered</span><span class="s bad">cancelled</span><span class="s">placed</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">order_value</div>
+            <div class="cdesc">Total bill amount in ₹</div>
+            <div class="samps"><span class="s">₹340.00</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">delivery_time_mins</div>
+            <div class="cdesc">How long the delivery took in minutes</div>
+            <div class="samps"><span class="s">32 mins</span><span class="s ok">under 30 = fast</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">rating <span class="ndot2" title="can be NULL"></span></div>
+            <div class="cdesc">Customer's rating 1–5 · NULL if they haven't rated yet</div>
+            <div class="samps"><span class="s ok">5</span><span class="s ok">4</span><span class="s bad">1</span><span class="s nil">NULL</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">payment_status</div>
+            <div class="cdesc">Did the payment go through?</div>
+            <div class="samps"><span class="s ok">success</span><span class="s bad">failed</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">payment_method</div>
+            <div class="cdesc">How the customer paid</div>
+            <div class="samps"><span class="s">UPI</span><span class="s">Card</span><span class="s">COD</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">coupon_code <span class="ndot2" title="can be NULL"></span></div>
+            <div class="cdesc">Discount code applied — NULL if none used</div>
+            <div class="samps"><span class="s">PRIME20</span><span class="s">NEWUSER50</span><span class="s">FESTIVE30</span><span class="s nil">NULL</span></div>
+          </div>
+        </div>
+
+        <div class="crow">
+          <div class="bcell"><span class="b-dash">—</span></div>
+          <div class="cinfo">
+            <div class="cname">discount_amount</div>
+            <div class="cdesc">₹ discount applied on this order</div>
+            <div class="samps"><span class="s">₹50.00</span><span class="s">₹0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JOIN EXPLORER -->
+  <div class="sep"><span>Interactive JOIN explorer — click any customer row</span></div>
+
+  <div class="join-area" id="join-area">
+    <div class="jpanel">
+      <div class="jhead">zomato.customers</div>
+      <div class="jcols cc"><span>cust_id</span><span>city</span><span>joined</span><span>prime</span></div>
+      <div class="jrow cc" data-cid="C001" onclick="sel('C001')"><span class="jid">C001</span><span>Bangalore</span><span class="jmt">2023-01-15</span><span class="jok">Y</span></div>
+      <div class="jrow cc" data-cid="C002" onclick="sel('C002')"><span class="jid">C002</span><span>Delhi</span><span class="jmt">2023-03-22</span><span class="jbad">N</span></div>
+      <div class="jrow cc" data-cid="C003" onclick="sel('C003')"><span class="jid">C003</span><span>Mumbai</span><span class="jmt">2024-07-08</span><span class="jok">Y</span></div>
+      <div class="jrow cc" data-cid="C004" onclick="sel('C004')"><span class="jid">C004</span><span>Pune</span><span class="jmt">2024-11-30</span><span class="jbad">N</span></div>
+    </div>
+
+    <div class="jconn" id="join-conn">
+      <svg id="join-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="jpanel">
+      <div class="jhead">zomato.orders</div>
+      <div class="jcols oc"><span>order_id</span><span>cust_id</span><span>status</span><span>value</span><span>rat.</span><span>method</span></div>
+      <div class="jrow oc" data-cid="C001"><span class="jid">ORD001</span><span class="jfk">C001</span><span class="jok">delivered</span><span>₹340</span><span>4</span><span class="jmt">UPI</span></div>
+      <div class="jrow oc" data-cid="C001"><span class="jid">ORD002</span><span class="jfk">C001</span><span class="jbad">cancelled</span><span>₹210</span><span class="jmt">—</span><span class="jmt">Card</span></div>
+      <div class="jrow oc" data-cid="C002"><span class="jid">ORD003</span><span class="jfk">C002</span><span class="jok">delivered</span><span>₹580</span><span>5</span><span class="jmt">UPI</span></div>
+      <div class="jrow oc" data-cid="C003"><span class="jid">ORD004</span><span class="jfk">C003</span><span class="jok">delivered</span><span>₹125</span><span>3</span><span class="jmt">COD</span></div>
+      <div class="jrow oc" data-cid="C001"><span class="jid">ORD005</span><span class="jfk">C001</span><span class="jok">delivered</span><span>₹680</span><span>5</span><span class="jmt">UPI</span></div>
+      <div class="jrow oc" data-cid="C003"><span class="jid">ORD006</span><span class="jfk">C003</span><span class="jbad">cancelled</span><span>₹190</span><span class="jmt">—</span><span class="jmt">UPI</span></div>
+      <div class="jrow oc" data-cid="C004"><span class="jid">ORD007</span><span class="jfk">C004</span><span class="jok">delivered</span><span>₹445</span><span>4</span><span class="jmt">Card</span></div>
+      <div class="jrow oc" data-cid="C002"><span class="jid">ORD008</span><span class="jfk">C002</span><span class="jok">delivered</span><span>₹320</span><span>4</span><span class="jmt">COD</span></div>
+    </div>
+  </div>
+
+  <div class="hint">Click a customer to see which orders belong to them — this is exactly what a SQL JOIN does</div>
+  <div class="rbar" id="rbar"></div>
+
+  <!-- CONCEPTS -->
+  <div class="sep" style="margin-top:48px;"><span>Key concepts to remember</span></div>
+  <div class="concepts">
+    <div class="concept" style="border-top:3px solid var(--orange);">
+      <div class="cchip" style="background:var(--o-l);color:var(--orange);">Primary Key</div>
+      <h3 style="color:var(--orange);">The unique identity</h3>
+      <p>Every row gets one PK. It never repeats, never changes — like your Aadhaar number. It belongs to one person, forever.</p>
+      <div class="ceg">customer_id: C001 → always Priya · only Priya</div>
+    </div>
+    <div class="concept" style="border-top:3px solid var(--blue);">
+      <div class="cchip" style="background:var(--b-l);color:var(--blue);">Foreign Key</div>
+      <h3 style="color:var(--blue);">The bridge between tables</h3>
+      <p>A FK in one table points to a PK in another. This is how tables talk to each other — and the reason a JOIN is possible.</p>
+      <div class="ceg">orders.customer_id = customers.customer_id</div>
+    </div>
+    <div class="concept" style="border-top:3px solid var(--t4);">
+      <div class="cchip" style="background:var(--grey-l);color:var(--t2);">Nullable</div>
+      <h3>Empty is valid — sometimes</h3>
+      <p>NULL means no value was stored. A customer who hasn't rated yet has NULL in the rating column. Always handle NULLs carefully — they break averages silently.</p>
+      <div class="ceg">AVG(rating) skips NULLs · COUNT(*) includes them</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let active = null;
+
+function drawErd() {
+  const pk = document.getElementById('pk-row');
+  const fk = document.getElementById('fk-row');
+  const cc = document.getElementById('conn-col');
+  const svg = document.getElementById('erd-svg');
+  const cCard = document.getElementById('cust-card');
+  const oCard = document.getElementById('ord-card');
+  if (!pk || !fk) return;
+  const pkR = pk.getBoundingClientRect();
+  const fkR = fk.getBoundingClientRect();
+  const cR = cCard.getBoundingClientRect();
+  const oR = oCard.getBoundingClientRect();
+  const ccR = cc.getBoundingClientRect();
+  const y1 = pkR.top + pkR.height / 2 - ccR.top;
+  const y2 = fkR.top + fkR.height / 2 - ccR.top;
+  const x1 = cR.right - ccR.left;
+  const x2 = oR.left - ccR.left;
+  const mid = (x1 + x2) / 2;
+  const H = Math.max(cR.height, oR.height, Math.abs(y2 - y1) + 60);
+  cc.style.minHeight = H + 'px';
+  svg.setAttribute('viewBox', `0 0 ${ccR.width} ${H}`);
+  const p = `M${x1} ${y1} C${mid} ${y1},${mid} ${y2},${x2} ${y2}`;
+  svg.innerHTML = `
+    <defs>
+      <marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 2L8 5L2 8" fill="none" stroke="#1756C0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <path d="${p}" fill="none" stroke="#E8E3DC" stroke-width="3"/>
+    <path d="${p}" fill="none" stroke="#1756C0" stroke-width="1.5" stroke-dasharray="5 3.5" marker-end="url(#ma)" opacity=".55"/>
+    <circle cx="${x1}" cy="${y1}" r="5" fill="#CC520E" opacity=".85"/>
+    <circle cx="${x2}" cy="${y2}" r="5" fill="#1756C0" opacity=".85"/>
+    <text x="${mid}" y="${(y1+y2)/2 - 7}" fill="#A8998A" font-size="9" font-family="DM Mono,monospace" text-anchor="middle">customer_id</text>
+    <text x="${mid}" y="${(y1+y2)/2 + 8}" fill="#A8998A" font-size="9" font-family="DM Mono,monospace" text-anchor="middle">1 → many</text>
+  `;
+}
+
+function sel(cid) {
+  active = active === cid ? null : cid;
+  render();
+}
+
+function render() {
+  const cRows = document.querySelectorAll('#join-area .jpanel:first-child .jrow');
+  const oRows = document.querySelectorAll('#join-area .jpanel:last-child .jrow');
+  const svg = document.getElementById('join-svg');
+  const jc = document.getElementById('join-conn');
+  const bar = document.getElementById('rbar');
+
+  cRows.forEach(r => {
+    r.classList.remove('active','dimmed');
+    if (active) r.classList.add(r.dataset.cid === active ? 'active' : 'dimmed');
+  });
+  let n = 0;
+  oRows.forEach(r => {
+    r.classList.remove('matched','dimmed');
+    if (active) { if (r.dataset.cid === active) { r.classList.add('matched'); n++; } else r.classList.add('dimmed'); }
+  });
+  if (active && n) {
+    bar.className = 'rbar on';
+    bar.innerHTML = `<strong>JOIN result:</strong> customer <code style="font-family:'DM Mono',monospace">${active}</code> has <strong>${n} order${n>1?'s':''}</strong> in the orders table`;
+  } else { bar.className = 'rbar'; }
+
+  if (!active) { svg.innerHTML = ''; return; }
+  const jcR = jc.getBoundingClientRect();
+  const aH = document.getElementById('join-area').getBoundingClientRect().height;
+  jc.style.minHeight = aH + 'px';
+  svg.setAttribute('viewBox', `0 0 ${jcR.width||72} ${aH}`);
+  let aCR = null;
+  cRows.forEach(r => { if (r.dataset.cid === active) aCR = r; });
+  if (!aCR) return;
+  const paths = [];
+  oRows.forEach(r => {
+    if (r.dataset.cid !== active) return;
+    const cr = aCR.getBoundingClientRect();
+    const or = r.getBoundingClientRect();
+    const y1 = cr.top + cr.height/2 - jcR.top;
+    const y2 = or.top + or.height/2 - jcR.top;
+    const x1 = cr.right - jcR.left;
+    const x2 = or.left - jcR.left;
+    const mid = (x1+x2)/2;
+    paths.push(`<path d="M${x1} ${y1} C${mid} ${y1},${mid} ${y2},${x2} ${y2}" fill="none" stroke="#17875A" stroke-width="1.5" stroke-dasharray="5 3" opacity=".65"/>`);
+    paths.push(`<circle cx="${x1}" cy="${y1}" r="3.5" fill="#17875A" opacity=".75"/>`);
+    paths.push(`<circle cx="${x2}" cy="${y2}" r="3.5" fill="#17875A" opacity=".75"/>`);
+  });
+  svg.innerHTML = paths.join('');
+}
+
+window.addEventListener('load', () => { drawErd(); setTimeout(drawErd, 180); });
+window.addEventListener('resize', () => { drawErd(); if (active) render(); });
+</script>
+</body>
+</html>
