@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is a DBMS? — Rapido</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#f1f5f9;color:#0f172a;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6}
+.page{max-width:1000px;margin:0 auto;padding:0 1.5rem 5rem}
+.hero{text-align:center;padding:3.5rem 1rem 2rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;color:#0f172a}
+.hero p{color:#64748b;font-size:1.05rem;margin-top:.5rem}
+.section{margin-top:2.5rem}
+.pill{display:inline-block;background:#fff2e8;color:#ea580c;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 12px;border-radius:99px;margin-bottom:1rem;border:1px solid #fed7aa}
+
+/* Actors */
+.actors{display:flex;gap:14px;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
+.actor{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:1rem 1.2rem;text-align:center;min-width:140px;flex:1;max-width:180px;cursor:pointer;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.actor:hover{border-color:#f97316;transform:translateY(-2px);box-shadow:0 4px 12px rgba(249,115,22,.15)}
+.actor.sending{border-color:#f97316;background:#fff7ed;box-shadow:0 4px 16px rgba(249,115,22,.2)}
+.a-icon{font-size:1.8rem;margin-bottom:6px}
+.a-title{font-size:14px;font-weight:700;color:#0f172a}
+.a-sub{font-size:12px;color:#64748b;margin-top:3px}
+
+/* Arrow */
+@keyframes arrDown{0%{opacity:0;transform:translateY(-6px)}30%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(6px)}}
+.arr-row{display:flex;justify-content:center;gap:14px;height:30px;align-items:center;margin:.3rem 0}
+.ad{color:#f97316;font-size:1.2rem;opacity:0;font-weight:700}
+.ad.go{animation:arrDown .9s ease forwards}
+.arr-label{font-size:11px;color:#94a3b8;text-align:center;margin-bottom:.3rem}
+
+/* DBMS box */
+.dbms-box{background:#fff;border:2px solid #c4b5fd;border-radius:20px;padding:1.5rem;transition:box-shadow .3s;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.dbms-box.lit{box-shadow:0 0 0 4px rgba(167,139,250,.15),0 4px 16px rgba(124,58,237,.12)}
+.dbms-title{text-align:center;font-size:18px;font-weight:800;color:#6d28d9;margin-bottom:.3rem}
+.dbms-sub{text-align:center;font-size:13px;color:#94a3b8;margin-bottom:1.2rem}
+.fns{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.fn{background:#faf5ff;border-radius:12px;padding:.9rem .8rem;text-align:center;cursor:pointer;border:1px solid #e9d5ff;transition:all .3s}
+.fn:hover,.fn.on{background:#ede9fe;border-color:#a78bfa}
+.fn-icon{font-size:1.4rem;margin-bottom:4px}
+.fn-title{font-size:13px;font-weight:700;color:#4c1d95}
+.fn-desc{font-size:11px;color:#7c3aed;margin-top:3px;line-height:1.4}
+.fn-info{background:#faf5ff;border-radius:10px;border:1px solid #e9d5ff;padding:.9rem 1.1rem;margin-top:.8rem;font-size:13px;color:#4c1d95;display:none;line-height:1.7;border-left:3px solid #7c3aed}
+.fn-info.show{display:block}
+.fn-info code{background:#ede9fe;padding:1px 5px;border-radius:3px;color:#5b21b6;font-size:12px}
+
+/* Arrow to DB */
+.to-db{display:flex;flex-direction:column;align-items:center;margin:.4rem 0;height:44px;justify-content:center}
+.to-db-line{width:2px;height:26px;background:#e2e8f0;border-radius:1px;position:relative;overflow:hidden}
+@keyframes lineFlow{0%{top:-100%}100%{top:100%}}
+.to-db-line::after{content:'';position:absolute;top:-100%;left:0;width:100%;height:50%;background:#22c55e;animation:lineFlow 1.1s linear infinite}
+.to-db-icon{color:#22c55e;font-size:1rem;margin-top:2px}
+
+/* DB box */
+.db-box{background:#fff;border:2px solid #86efac;border-radius:20px;padding:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.db-title{text-align:center;font-size:16px;font-weight:800;color:#15803d;margin-bottom:1rem}
+.tables-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.tbl{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:.6rem 1.2rem;font-size:13px;font-weight:600;color:#166534;font-family:monospace;cursor:pointer;transition:all .3s}
+.tbl:hover{background:#dcfce7;border-color:#4ade80}
+
+/* Simulator */
+.sim{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;margin-top:2rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sim-head{padding:1rem 1.4rem;border-bottom:1px solid #f1f5f9;font-size:15px;font-weight:700;color:#0f172a;background:#f8fafc}
+.sim-steps{padding:1.2rem 1.4rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.step{background:#f8fafc;border-radius:10px;padding:.6rem 1rem;font-size:12px;color:#64748b;border:1px solid #e2e8f0;flex:1;min-width:130px;transition:all .4s}
+.step.done{border-color:#86efac;background:#f0fdf4;color:#16a34a}
+.step.cur{border-color:#f97316;background:#fff7ed;color:#ea580c}
+.step-num{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.step-arrow{color:#cbd5e1;font-size:1rem;flex-shrink:0}
+.sim-btn{margin:0 1.4rem 1.2rem;padding:9px 20px;background:#fff7ed;border:1.5px solid #f97316;border-radius:10px;color:#ea580c;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
+.sim-btn:hover{background:#ffedd5}
+
+@media(max-width:640px){.fns{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="hero">
+  <h1>The manager between you and your data</h1>
+  <p>Every booking, search, update — travels through the DBMS before touching the database</p>
+</div>
+<div class="section">
+  <div class="pill">How a request flows</div>
+  <div class="actors">
+    <div class="actor" id="a1" onclick="send(0)"><div class="a-icon">📱</div><div class="a-title">Rider App</div><div class="a-sub">Books a ride</div></div>
+    <div class="actor" id="a2" onclick="send(1)"><div class="a-icon">🏍️</div><div class="a-title">Captain App</div><div class="a-sub">Accepts ride</div></div>
+    <div class="actor" id="a3" onclick="send(2)"><div class="a-icon">💻</div><div class="a-title">Admin Panel</div><div class="a-sub">Pulls reports</div></div>
+  </div>
+  <div class="arr-row">
+    <div class="ad" id="ar1">↓</div>
+    <div class="ad" id="ar2">↓</div>
+    <div class="ad" id="ar3">↓</div>
+  </div>
+  <div class="arr-label">SQL query sent to DBMS</div>
+  <div class="dbms-box" id="dbms">
+    <div class="dbms-title">DBMS — Database Management System</div>
+    <div class="dbms-sub">Click any function to see what it does</div>
+    <div class="fns">
+      <div class="fn" onclick="showFn('security',this)"><div class="fn-icon">🔐</div><div class="fn-title">Security</div><div class="fn-desc">Who can access what?</div></div>
+      <div class="fn" onclick="showFn('query',this)"><div class="fn-icon">🔍</div><div class="fn-title">Query</div><div class="fn-desc">Find &amp; filter data</div></div>
+      <div class="fn" onclick="showFn('backup',this)"><div class="fn-icon">💾</div><div class="fn-title">Backup</div><div class="fn-desc">Never lose data</div></div>
+      <div class="fn" onclick="showFn('txn',this)"><div class="fn-icon">⚖️</div><div class="fn-title">Transactions</div><div class="fn-desc">All-or-nothing saves</div></div>
+    </div>
+    <div class="fn-info" id="fn-security">Before any query runs, the DBMS checks: is this user allowed? A rider sees only their rides. A captain sees only theirs. The CEO sees everything. Permissions work at the row and column level — very precise.</div>
+    <div class="fn-info" id="fn-query">When you ask the database a question — like "show me all rides in Bangalore today" — the DBMS reads it, creates a plan to find that data as fast as possible, and returns the answer. Like Google Maps finding the fastest route — but for data.</div>
+    <div class="fn-info" id="fn-backup">The DBMS keeps a running log of every change. If a server crashes at 3am, Rapido's data is restored from backup with zero rides lost. Fully automatic — you never have to think about it.</div>
+    <div class="fn-info" id="fn-txn">When a ride is booked: (1) create ride record, (2) charge rider, (3) notify captain. All three must succeed together. If step 2 fails, step 1 is also undone. No partial saves. No money deducted without a ride.</div>
+  </div>
+  <div class="to-db"><div class="to-db-line"></div><div class="to-db-icon">↓</div></div>
+  <div class="arr-label" style="margin-bottom:.4rem">Approved — reading / writing data</div>
+  <div class="db-box">
+    <div class="db-title">🗄️ Database — where data actually lives</div>
+    <div class="tables-row">
+      <div class="tbl" onclick="alert('rapido.users stores:\nuser_id (PK), first_name, last_name, email, signup_date, origin_city')">rapido.users</div>
+      <div class="tbl" onclick="alert('rapido.rides stores:\nride_id (PK), user_id (FK), start_time, end_time, start_location, end_location, distance_km, vehicle_type, captain_rating')">rapido.rides</div>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="pill">Simulate a request</div>
+  <div class="sim">
+    <div class="sim-head">🏍️ Ankit opens the Rapido app and books a bike ride</div>
+    <div class="sim-steps">
+      <div class="step" id="s1"><div class="step-num">Step 1</div>App sends request</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="s2"><div class="step-num">Step 2</div>DBMS checks security</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="s3"><div class="step-num">Step 3</div>DBMS writes ride record</div>
+      <div class="step-arrow">→</div>
+      <div class="step" id="s4"><div class="step-num">Step 4</div>Confirmation returned</div>
+    </div>
+    <button class="sim-btn" onclick="runSim()">▶ Run the simulation</button>
+  </div>
+</div>
+</div>
+<script>
+var afn=null;
+function showFn(n,el){
+  if(afn===n){document.getElementById('fn-'+n).classList.remove('show');document.querySelectorAll('.fn').forEach(function(c){c.classList.remove('on')});afn=null;return}
+  document.querySelectorAll('.fn-info').forEach(function(e){e.classList.remove('show')});
+  document.querySelectorAll('.fn').forEach(function(c){c.classList.remove('on')});
+  document.getElementById('fn-'+n).classList.add('show');el.classList.add('on');afn=n;
+}
+function send(i){
+  var ac=['a1','a2','a3'],ar=['ar1','ar2','ar3'];
+  document.querySelectorAll('.actor').forEach(function(a){a.classList.remove('sending')});
+  document.querySelectorAll('.ad').forEach(function(a){a.classList.remove('go')});
+  document.getElementById(ac[i]).classList.add('sending');
+  var a=document.getElementById(ar[i]);a.classList.remove('go');void a.offsetWidth;a.classList.add('go');
+  document.getElementById('dbms').classList.add('lit');
+  setTimeout(function(){document.getElementById(ac[i]).classList.remove('sending');document.getElementById('dbms').classList.remove('lit')},1800);
+}
+var simR=false;
+function runSim(){
+  if(simR)return;simR=true;
+  var ss=['s1','s2','s3','s4'];
+  ss.forEach(function(s){var e=document.getElementById(s);e.classList.remove('done','cur')});
+  var i=0;
+  function nx(){
+    if(i>0)document.getElementById(ss[i-1]).classList.replace('cur','done');
+    if(i<ss.length){document.getElementById(ss[i]).classList.add('cur');i++;setTimeout(nx,900)}else{simR=false}
+  }
+  nx();
+}
+</script>
+</body>
+</html>
